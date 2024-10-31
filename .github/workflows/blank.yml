@@ -1,0 +1,33 @@
+name: Update CodeArtifact Token
+
+on:
+  schedule:
+    # CodeArtifact token expires in 12 hours, update token every 11 hours
+    - cron: 0 */11 * * *
+  # run manually if needed
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      # need a token with admin access to update the secret
+      GH_TOKEN: ${{ secrets.GH_CLI }}
+    steps:
+      - uses: actions/checkout@v3
+      # using OIDC to assume the proper role 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-east-1
+          # this should be the role arn that you created in AWS
+          role-to-assume: arn:aws:iam::946480689171:role/iamgithub-Role-DUaal95VYksH
+      - name: Get token and update secret
+        run: |
+          export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain gojo --domain-owner 946480689171 --region us-east-1  --query authorizationToken --output text`
+# Remember we called the organization secret CODEARTIFACT_TOKEN, make sure the code below matches whatever you called your secret
+          gh secret set CODEARTIFACT_TOKEN --org patelarth0311 --visibility all --app dependabot --body "$CODEARTIFACT_AUTH_TOKEN"
