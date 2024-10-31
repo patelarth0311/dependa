@@ -29,5 +29,4 @@ jobs:
       - name: Get token and update secret
         run: |
           export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain gojo --domain-owner 946480689171 --region us-east-1  --query authorizationToken --output text`
-          gh secret set CODEARTIFACT_TOKEN --org patelarth0311 --visibility all --app dependabot --body "$CODEARTIFACT_AUTH_TOKEN"
  # Remember we called the organization secret CODEARTIFACT_TOKEN, make sure the code below matches whatever you called your secret
